@@ -697,72 +697,144 @@ function restoreState() {
   return false;
 }
 
-function escapeAttr(value) {
-  return escapeHtml(value).replace(/`/g, '&#96;');
+var PRINT_COL_WIDTHS_MM = [32.8553, 40.2759, 36.7710, 38.3180, 36.3602, 13.4253];
+var PRINT_PAGE1_ROW_MM = [5.5939, 43.0075, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.3563, 3.8038, 3.2538, 43.0075, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.3563, 3.8038, 3.2538, 43.0075, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.8038, 3.2538, 43.0075, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.8038, 3.2538];
+var PRINT_PAGE2_ROW_MM = [43.0075, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.3563, 3.4962, 4.1954, 43.0448, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.3563, 3.8038, 4.1954, 43.0448, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.8038, 4.1954, 43.0448, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 3.2817, 4.3353, 3.2817];
+var PRINT_PAGE1_FILL = ['', '', 'BCDEF', 'ABCDEF', '', '', '', 'BCDEF', '', 'ABCEF', '', 'BCDEF', 'ABCDEF', '', 'E', '', 'BCDEF', '', 'ABCDEF', '', 'BCDEF', 'ABCDEF', '', 'B', 'C', 'BCEF', 'D', 'ABCDEF', '', 'BCDEF', 'ABCDEF', '', '', '', 'BCDEF', '', 'BCDEF'];
+var PRINT_PAGE2_FILL = ['', 'BCDEF', 'ABCDEF', '', '', '', 'BCDEF', '', 'ABCEF', '', 'BCDEF', 'ABCDEF', '', 'E', '', 'BCDEF', '', 'ABCDEF', '', 'BCDEF', 'ABCDEF', '', 'B', 'C', 'BCEF', 'D', 'ABCDEF', '', 'BCDEF', 'ABCDEF', '', '', '', 'BCDEF', '', 'BCDEF'];
+var PRINT_GROUP_SIZE = 5;
+var PRINT_GROUPS_PER_PAGE = 4;
+var PRINT_PAGE_CARDS = PRINT_GROUP_SIZE * PRINT_GROUPS_PER_PAGE;
+var PRINT_MARGINS_MM = 5.9917;
+var PRINT_CONTENT_WIDTH_MM = 198.0056;
+var PRINT_CONTENT_HEIGHT_MM = 285.0166;
+var PRINT_FIELD_LABELS = ['Supplier', 'Style no', 'Sample', 'Shell Fabric', 'Lining', 'Padding/Filler', 'FOB Price', 'CMMTS'];
+
+function printableValue(card, field) {
+  if (!card) return '';
+  if (field === 'style') return (card.prefix || '') + '-' + (card.suffix || '');
+  return card[field] || '';
+}
+
+function printablePageTemplate(pageIndex) {
+  return pageIndex === 0 ? {
+    rowHeights: PRINT_PAGE1_ROW_MM,
+    fillMap: PRINT_PAGE1_FILL,
+    includeTitle: true
+  } : {
+    rowHeights: PRINT_PAGE2_ROW_MM,
+    fillMap: PRINT_PAGE2_FILL,
+    includeTitle: false
+  };
+}
+
+function printableCellClass(fillMap, rowPos, colLetter) {
+  return (fillMap[rowPos] && fillMap[rowPos].indexOf(colLetter) !== -1) ? ' filled' : '';
+}
+
+function printableImageHtml(card) {
+  if (!card || !card.image) return '<div class="empty">No Photo</div>';
+  return '<img src="' + card.image + '" alt="">';
 }
 
 function buildPrintableHtml() {
   var pages = [];
-  for (var i = 0; i < cards.length; i += 5) {
-    var group = cards.slice(i, i + 5);
-    var rows = '';
-    for (var p = 0; p < 5; p++) {
-      var card = group[p] || null;
-      rows += '<div class="col">';
-      rows += '<div class="photo">' + (card && card.image ? '<img src="' + escapeAttr(card.image) + '" alt="">' : '<div class="empty">No Photo</div>') + '</div>';
-      rows += '<table>';
-      for (var r = 0; r < FIELD_LABELS.length; r++) {
-        var value = '';
-        if (card) {
-          if (r === 0) value = card.supplier || '';
-          if (r === 1) value = (card.prefix || '') + '-' + (card.suffix || '');
-          if (r === 2) value = card.sample || '';
-          if (r === 3) value = card.shell || '';
-          if (r === 4) value = card.lining || '';
-          if (r === 5) value = card.padding || '';
-          if (r === 6) value = card.fob || '';
-          if (r === 7) value = card.comments || '';
-        }
-        rows += '<tr><th>' + escapeHtml(FIELD_LABELS[r]) + '</th><td>' + escapeHtml(value) + '</td></tr>';
-      }
-      rows += '</table></div>';
-    }
-    pages.push(
-      '<section class="page">' +
-        '<div class="page-head">' +
-          '<div class="title">SAMPLES MINI SKETCH - MENS</div>' +
-          '<div class="sub">可编辑 PDF 打印版</div>' +
-        '</div>' +
-        '<div class="grid">' + rows + '</div>' +
-        '<div class="page-foot">Page ' + (Math.floor(i / 5) + 1) + ' / ' + Math.ceil(cards.length / 5) + '</div>' +
-      '</section>'
-    );
+  var groups = [];
+  for (var i = 0; i < cards.length; i += PRINT_GROUP_SIZE) {
+    groups.push(cards.slice(i, i + PRINT_GROUP_SIZE));
   }
 
-  return (
-    '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">' +
+  for (var pageIndex = 0; pageIndex < groups.length; pageIndex += PRINT_GROUPS_PER_PAGE) {
+    var pageGroups = groups.slice(pageIndex, pageIndex + PRINT_GROUPS_PER_PAGE);
+    var template = printablePageTemplate(pageIndex / PRINT_GROUPS_PER_PAGE);
+    var rowHeights = template.rowHeights;
+    var fillMap = template.fillMap;
+    var rowPos = 0;
+    var pageRows = '';
+
+    function renderCell(tag, content, classes, extra) {
+      return '<' + tag + ' class="' + classes + '"' + (extra || '') + '>' + content + '</' + tag + '>';
+    }
+
+    if (template.includeTitle) {
+      pageRows += '<tr style="height:' + rowHeights[rowPos] + 'mm">' +
+        '<td colspan="6" class="title-cell">' + escapeHtml('SAMPLES MINI SKETCH- MENS') + '</td>' +
+      '</tr>';
+      rowPos += 1;
+    }
+
+    for (var g = 0; g < PRINT_GROUPS_PER_PAGE; g++) {
+      var group = pageGroups[g] || [];
+      var photoRowHeight = rowHeights[rowPos];
+      var photoCells = '';
+      photoCells += '<td class="label-cell' + printableCellClass(fillMap, rowPos, 'A') + '">' + escapeHtml('Photo') + '</td>';
+      for (var p = 0; p < PRINT_GROUP_SIZE; p++) {
+        var card = group[p] || null;
+        photoCells += '<td class="photo-cell' + printableCellClass(fillMap, rowPos, String.fromCharCode(66 + p)) + '">' +
+          '<div class="photo-wrap">' + printableImageHtml(card) + '</div>' +
+        '</td>';
+      }
+      pageRows += '<tr style="height:' + photoRowHeight + 'mm">' + photoCells + '</tr>';
+      rowPos += 1;
+
+      for (var r = 0; r < PRINT_FIELD_LABELS.length; r++) {
+        var rowHeight = rowHeights[rowPos];
+        var rowCells = '';
+        rowCells += '<td class="label-cell' + printableCellClass(fillMap, rowPos, 'A') + '">' + escapeHtml(PRINT_FIELD_LABELS[r]) + '</td>';
+        for (var q = 0; q < PRINT_GROUP_SIZE; q++) {
+          var current = group[q] || null;
+          var fieldName = r === 0 ? 'supplier' :
+            r === 1 ? 'style' :
+            r === 2 ? 'sample' :
+            r === 3 ? 'shell' :
+            r === 4 ? 'lining' :
+            r === 5 ? 'padding' :
+            r === 6 ? 'fob' : 'comments';
+          var cellValue = printableValue(current, fieldName);
+          rowCells += '<td class="data-cell' + printableCellClass(fillMap, rowPos, String.fromCharCode(66 + q)) + '">' + escapeHtml(cellValue) + '</td>';
+        }
+        pageRows += '<tr style="height:' + rowHeight + 'mm">' + rowCells + '</tr>';
+        rowPos += 1;
+      }
+    }
+
+    var pageCssClass = pageIndex === 0 ? 'page page-first' : 'page';
+    pages.push('<section class="' + pageCssClass + '">' +
+      '<table class="sheet">' +
+        '<colgroup>' +
+          '<col style="width:' + PRINT_COL_WIDTHS_MM[0] + 'mm">' +
+          '<col style="width:' + PRINT_COL_WIDTHS_MM[1] + 'mm">' +
+          '<col style="width:' + PRINT_COL_WIDTHS_MM[2] + 'mm">' +
+          '<col style="width:' + PRINT_COL_WIDTHS_MM[3] + 'mm">' +
+          '<col style="width:' + PRINT_COL_WIDTHS_MM[4] + 'mm">' +
+          '<col style="width:' + PRINT_COL_WIDTHS_MM[5] + 'mm">' +
+        '</colgroup>' +
+        '<tbody>' + pageRows + '</tbody>' +
+      '</table>' +
+    '</section>');
+  }
+
+  return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<style>' +
-      '@page{size:A3 landscape;margin:10mm}' +
-      'html,body{margin:0;padding:0;background:#fff;color:#111;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}' +
-      '.page{page-break-after:always;box-sizing:border-box;padding:0}' +
-      '.page-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6mm}' +
-      '.title{font-size:18pt;font-weight:700}' +
-      '.sub{font-size:9pt;color:#666}' +
-      '.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4mm}' +
-      '.col{border:1px solid #9a9a9a;min-height:0}' +
-      '.photo{height:46mm;border-bottom:1px solid #9a9a9a;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f4f4f4}' +
-      '.photo img{width:100%;height:100%;object-fit:cover;display:block}' +
-      '.photo .empty{font-size:11pt;color:#777}' +
-      'table{width:100%;border-collapse:collapse;table-layout:fixed}' +
-      'th,td{border-top:1px solid #9a9a9a;padding:2.2mm 2.4mm;font-size:8.5pt;vertical-align:top;word-break:break-word}' +
-      'th{width:27%;background:#f2f4f8;font-weight:700}' +
-      'td{width:73%}' +
-      '.page-foot{text-align:center;margin-top:5mm;font-size:8.5pt;color:#777}' +
+      '@page{size:A4 portrait;margin:' + PRINT_MARGINS_MM + 'mm}' +
+      'html,body{margin:0;padding:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif}' +
+      'body{width:' + PRINT_CONTENT_WIDTH_MM + 'mm}' +
+      '.page{width:' + PRINT_CONTENT_WIDTH_MM + 'mm;page-break-after:always;break-after:page}' +
+      '.page:last-child{page-break-after:auto;break-after:auto}' +
+      '.sheet{width:100%;border-collapse:collapse;table-layout:fixed}' +
+      '.sheet td{border:1px solid #000;padding:0 1.2mm;overflow:hidden;vertical-align:middle;text-align:center;font-size:6.35pt;line-height:1.1;background:#fff}' +
+      '.sheet .filled{background:#efefef}' +
+      '.sheet .label-cell{font-weight:700}' +
+      '.sheet .title-cell{font-size:12.7pt;font-weight:700;letter-spacing:0;text-align:center;border-bottom:0}' +
+      '.sheet .photo-cell{padding:0.8mm}' +
+      '.sheet .photo-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
+      '.sheet .photo-wrap img{max-width:100%;max-height:100%;display:block;object-fit:contain}' +
+      '.sheet .empty{font-size:10pt;color:#666}' +
+      '.page-first{margin-top:0}' +
     '</style></head><body>' +
     pages.join('') +
-    '</body></html>'
-  );
+    '</body></html>';
 }
 
 function exportPDF() {
@@ -770,6 +842,7 @@ function exportPDF() {
     toast('请先添加产品');
     return;
   }
+
   showLoad('准备打印 PDF...');
   try {
     var frame = document.getElementById('printFrame');
@@ -782,7 +855,7 @@ function exportPDF() {
       toast('请在打印面板里选择“存储为 PDF”');
       frame.contentWindow.focus();
       frame.contentWindow.print();
-    }, 350);
+    }, 300);
   } catch (err) {
     hideLoad();
     toast('生成失败: ' + (err && err.message ? err.message : err));
