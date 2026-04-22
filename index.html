@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="富贵一生">
+<title>AAA富贵一生 Excel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:#111;color:#f0f0f0;min-height:100vh;overflow-x:hidden}
+
+/* Splash - 全屏覆盖，点击跳到 #app */
+#splash{
+  position:fixed;inset:0;background:#111;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;text-decoration:none;color:inherit;
+}
+#splash img{width:180px;height:180px;border-radius:40px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+#splash h1{font-size:22px;font-weight:700;margin-top:20px;letter-spacing:1px;color:#f0f0f0}
+#splash p{font-size:13px;color:#555;margin-top:8px}
+
+/* 当 URL 有 #app 时隐藏开屏 */
+#splash:target{display:none}
+/* 用 :target 的反向逻辑：默认显示splash，点击后跳到#app锚点 */
+
+/* App */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+.topbar{background:#1a1a1a;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;position:sticky;top:0;z-index:100}
+.topbar h1{font-size:16px;font-weight:700}
+.topbar-btns{display:flex;gap:8px}
+.tbtn{background:#252525;color:#f0f0f0;border:none;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer}
+.tbtn:active{background:#333}
+.tbtn-white{background:#f0f0f0;color:#111}
+.tbtn-white:active{background:#ccc}
+
+.gset{background:#1a1a1a;padding:10px 14px;border-bottom:1px solid #222;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gset-item{display:flex;flex-direction:column;gap:3px}
+.gset-item label{font-size:10px;color:#555;font-weight:500}
+.gset-item input{background:#222;border:1px solid #2a2a2a;color:#f0f0f0;padding:6px 8px;border-radius:7px;font-size:13px;outline:none;width:130px}
+.gset-item input.short{width:70px}
+.gset-item input.xshort{width:55px}
+
+#cards{padding:12px;display:flex;flex-direction:column;gap:10px;padding-bottom:80px}
+
+.card{background:#1a1a1a;border-radius:14px;border:1px solid #222;overflow:hidden}
+.card-hdr{background:#1e1e1e;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222}
+.card-hdr span{font-size:12px;font-weight:600;color:#666}
+.card-hdr button{background:none;border:none;color:#444;font-size:20px;cursor:pointer;line-height:1;padding:0 4px}
+.card-body{display:flex;gap:10px;padding:10px}
+.photo-col{flex-shrink:0;display:flex;flex-direction:column;gap:6px}
+.photo-box{width:100px;height:120px;background:#1e1e1e;border-radius:10px;border:1.5px dashed #2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
+.photo-box img{width:100%;height:100%;object-fit:cover}
+.photo-box .ph{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.photo-box .ph i{font-size:26px;line-height:1}
+.photo-box .ph p{font-size:10px;color:#444}
+.photo-btns{display:flex;gap:4px}
+.photo-btns button{flex:1;background:#1e1e1e;border:1px solid #2a2a2a;color:#777;padding:5px 0;border-radius:6px;font-size:10px;cursor:pointer}
+.fields-col{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.frow{display:flex;flex-direction:column;gap:2px}
+.frow label{font-size:10px;color:#555;font-weight:500}
+.frow input,.frow select{background:#1e1e1e;border:1px solid #222;color:#f0f0f0;padding:6px 8px;border-radius:7px;font-size:12px;outline:none;width:100%;-webkit-appearance:none}
+.style-row{display:flex;gap:4px;align-items:center}
+.style-row input:first-child{flex:1.2}
+.style-row span{color:#444;font-size:13px;flex-shrink:0}
+.style-row input:last-child{flex:0.8}
+.add-btn{background:#1a1a1a;border:1.5px dashed #252525;color:#444;padding:14px;border-radius:14px;font-size:13px;cursor:pointer;text-align:center;width:100%}
+.botbar{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;border-top:1px solid #222;padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:100}
+.botbar button{flex:1;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer}
+.b-add{background:#222;color:#f0f0f0}
+.b-export{background:#f0f0f0;color:#111}
+
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2a2a2a;color:#f0f0f0;padding:9px 18px;border-radius:20px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;white-space:nowrap}
+#loading{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9998}
+#loading p{font-size:13px;color:#f0f0f0}
+.spin{width:34px;height:34px;border:3px solid #333;border-top-color:#f0f0f0;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- 开屏：点击跳到 #app 锚点，Safari 本地文件完全支持 -->
+<a id="splash" href="#app">
+  <img src="data:image/jpeg;base64,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">
+  <h1>AAA富贵一生 Excel</h1>
+  <p>点击进入</p>
+</a>
+
+<div id="app">
+  <div class="topbar">
+    <h1>富贵一生 Excel</h1>
+    <div class="topbar-btns">
+      <button class="tbtn" onclick="batchImport()">批量导入</button>
+      <button class="tbtn tbtn-white" onclick="exportPDF()">导出 PDF</button>
+    </div>
+  </div>
+
+  <div class="gset">
+    <div class="gset-item">
+      <label>Supplier（全组共用）</label>
+      <input id="gSupplier" type="text" placeholder="供应商" oninput="syncSupplier()">
+    </div>
+    <div class="gset-item">
+      <label>Style 前缀</label>
+      <input id="gPrefix" type="text" placeholder="如 PAG26" class="short" oninput="syncPrefix()">
+    </div>
+    <div class="gset-item">
+      <label>起始编号</label>
+      <input id="gStart" type="number" value="1" min="1" class="xshort" oninput="syncNumbers()">
+    </div>
+  </div>
+
+  <div id="cards">
+    <button class="add-btn" onclick="addCard()">＋ 添加产品</button>
+  </div>
+
+  <div class="botbar">
+    <button class="b-add" onclick="addCard()">＋ 添加</button>
+    <button class="b-export" onclick="exportPDF()">导出 PDF</button>
+  </div>
+</div>
+
+<input type="file" id="fileMulti" accept="image/*,.heic,.heif" multiple style="display:none">
+<input type="file" id="fileSingle" accept="image/*,.heic,.heif" style="display:none">
+<input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none">
+
+<div id="toast"></div>
+<div id="loading"><div class="spin"></div><p id="loadTxt">处理中...</p></div>
+
+<script>
+let cards = [], _cardId = 0;
+
+function addCard(data) {
+  const id = ++_cardId, idx = cards.length;
+  const c = {
+    id, imgData: null,
+    supplier: document.getElementById('gSupplier').value,
+    prefix: document.getElementById('gPrefix').value,
+    suffix: numSuffix(idx),
+    sample: 'Development Sample',
+    shell: '', lining: '', padding: '', fob: '', comments: '',
+    ...data
+  };
+  cards.push(c);
+  renderCard(c, idx);
+}
+
+function numSuffix(idx) {
+  const s = parseInt(document.getElementById('gStart').value) || 1;
+  return String(s + idx).padStart(2, '0');
+}
+
+function renderCard(c, idx) {
+  const container = document.getElementById('cards');
+  const addBtn = container.querySelector('.add-btn');
+  const div = document.createElement('div');
+  div.className = 'card'; div.id = 'c' + c.id;
+  div.innerHTML = `
+    <div class="card-hdr"><span>产品 ${idx + 1}</span><button onclick="delCard(${c.id})">×</button></div>
+    <div class="card-body">
+      <div class="photo-col">
+        <div class="photo-box" id="pb${c.id}" onclick="pickOne(${c.id})">
+          <div class="ph"><i>📷</i><p>点击添加</p></div>
+        </div>
+        <div class="photo-btns">
+          <button onclick="shoot(${c.id})">拍照</button>
+          <button onclick="pickOne(${c.id})">相册</button>
+        </div>
+      </div>
+      <div class="fields-col">
+        <div class="frow"><label>Supplier</label><input value="${x(c.supplier)}" oninput="upd(${c.id},'supplier',this.value)"></div>
+        <div class="frow"><label>Style No</label>
+          <div class="style-row">
+            <input value="${x(c.prefix)}" placeholder="前缀" oninput="upd(${c.id},'prefix',this.value)">
+            <span>-</span>
+            <input value="${x(c.suffix)}" placeholder="编号" oninput="upd(${c.id},'suffix',this.value)">
+          </div></div>
+        <div class="frow"><label>Sample</label>
+          <select onchange="upd(${c.id},'sample',this.value)">
+            ${['Development Sample','Bought Sample','Bulk Sample'].map(o=>`<option ${c.sample===o?'selected':''}>${o}</option>`).join('')}
+          </select></div>
+        <div class="frow"><label>Shell Fabric</label><input value="${x(c.shell)}" oninput="upd(${c.id},'shell',this.value)"></div>
+        <div class="frow"><label>Lining</label><input value="${x(c.lining)}" oninput="upd(${c.id},'lining',this.value)"></div>
+        <div class="frow"><label>Padding/Filler</label>
+          <select onchange="upd(${c.id},'padding',this.value)">
+            ${['','Flat Padding','Fake Down','90%Down 10%Feather'].map(o=>`<option ${c.padding===o?'selected':''}>${o}</option>`).join('')}
+          </select></div>
+        <div class="frow"><label>FOB Price</label><input value="${x(c.fob)}" oninput="upd(${c.id},'fob',this.value)"></div>
+        <div class="frow"><label>Comments</label><input value="${x(c.comments)}" oninput="upd(${c.id},'comments',this.value)"></div>
+      </div>
+    </div>`;
+  container.insertBefore(div, addBtn);
+}
+
+function x(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function upd(id, f, v) { const c = cards.find(c=>c.id===id); if(c) c[f]=v; }
+function delCard(id) {
+  if (!confirm('删除？')) return;
+  cards = cards.filter(c => c.id !== id);
+  document.getElementById('c' + id)?.remove();
+  document.querySelectorAll('.card-hdr span').forEach((el,i) => el.textContent = `产品 ${i+1}`);
+}
+
+function syncSupplier() {
+  const v = document.getElementById('gSupplier').value;
+  cards.forEach(c => { c.supplier = v; const el = document.querySelector(`#c${c.id} .fields-col input`); if(el) el.value = v; });
+}
+function syncPrefix() {
+  const v = document.getElementById('gPrefix').value;
+  cards.forEach(c => { c.prefix = v; const inputs = document.querySelectorAll(`#c${c.id} .style-row input`); if(inputs[0]) inputs[0].value = v; });
+}
+function syncNumbers() {
+  const s = parseInt(document.getElementById('gStart').value) || 1;
+  cards.forEach((c, i) => { c.suffix = String(s+i).padStart(2,'0'); const inputs = document.querySelectorAll(`#c${c.id} .style-row input`); if(inputs[1]) inputs[1].value = c.suffix; });
+}
+
+function pickOne(id) {
+  const inp = document.getElementById('fileSingle');
+  inp.onchange = e => loadImg(e.target.files[0], id);
+  inp.value = ''; inp.click();
+}
+function shoot(id) {
+  const inp = document.getElementById('fileCamera');
+  inp.onchange = e => loadImg(e.target.files[0], id);
+  inp.value = ''; inp.click();
+}
+function batchImport() {
+  const inp = document.getElementById('fileMulti');
+  inp.onchange = async e => {
+    const files = Array.from(e.target.files);
+    showLoad(`导入 0/${files.length}`);
+    for (let i = 0; i < files.length; i++) {
+      document.getElementById('loadTxt').textContent = `压缩 ${i+1}/${files.length}`;
+      const data = await compress(files[i]);
+      addCard({ imgData: data });
+    }
+    hideLoad(); toast(`已导入 ${files.length} 张`);
+  };
+  inp.value = ''; inp.click();
+}
+async function loadImg(file, id) {
+  if (!file) return;
+  const data = await compress(file);
+  const c = cards.find(c => c.id === id);
+  if (c) { c.imgData = data; const box = document.getElementById('pb' + id); if(box) box.innerHTML = `<img src="${data}">`; }
+}
+function compress(file, maxPx=1200, q=0.82) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w=img.width, h=img.height;
+        if(w>maxPx||h>maxPx) { if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;} }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        res(cv.toDataURL('image/jpeg',q));
+      };
+      img.src = e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+async function exportPDF() {
+  if (!cards.length) { toast('请先添加产品'); return; }
+  showLoad('生成 PDF...');
+  await new Promise(r => setTimeout(r, 50));
+  try {
+    const PW=1587,PH=1123,ML=30,MR=30,MT=40,cW=PW-ML-MR,c0=120,dcW=(cW-c0)/5,PH2=200,RH=22;
+    const groups=[];
+    for(let i=0;i<cards.length;i+=5) groups.push(cards.slice(i,i+5));
+    const pages=Math.ceil((MT+30+groups.length*(PH2+RH*8+8))/PH);
+    const cv=document.createElement('canvas'); cv.width=PW; cv.height=PH*pages;
+    const ctx=cv.getContext('2d');
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.fillStyle='#000'; ctx.font='bold 16px Arial'; ctx.textAlign='left';
+    ctx.fillText('SAMPLES MINI SKETCH- MENS',ML,MT-10);
+    const LBL=['supplier ','Style no','Sample','Shell Fabric','Lining','Padding/Filler','FOB Price','CMMTS'];
+    let y=MT;
+    for(let g=0;g<groups.length;g++) {
+      const grp=groups[g];
+      dc(ctx,ML,y,c0,PH2,'#ddd','#f5f5f5');
+      ctx.fillStyle='#333';ctx.font='bold 11px Arial';ctx.textAlign='center';
+      ctx.fillText('Photo',ML+c0/2,y+PH2/2+4);
+      let cx=ML+c0;
+      for(let p=0;p<5;p++) {
+        dc(ctx,cx,y,dcW,PH2,'#ddd','#fff');
+        if(grp[p]&&grp[p].imgData) await di(ctx,grp[p].imgData,cx+2,y+2,dcW-4,PH2-4);
+        cx+=dcW;
+      }
+      let ry=y+PH2;
+      for(let r=0;r<LBL.length;r++) {
+        dc(ctx,ML,ry,c0,RH,'#ddd','#f0f4ff');
+        ctx.fillStyle='#111';ctx.font='bold 9px Arial';ctx.textAlign='center';
+        ctx.fillText(LBL[r],ML+c0/2,ry+RH/2+3);
+        cx=ML+c0;
+        for(let p=0;p<5;p++) {
+          dc(ctx,cx,ry,dcW,RH,'#ddd','#fff');
+          const card=grp[p];
+          if(card) {
+            const vals=[card.supplier,`${card.prefix}-${card.suffix}`,card.sample,card.shell,card.lining,card.padding,card.fob,card.comments];
+            ctx.fillStyle='#222';ctx.font='9px Arial';ctx.textAlign='center';
+            let t=vals[r]||'';
+            while(t.length>0&&ctx.measureText(t).width>dcW-6) t=t.slice(0,-1);
+            if(t!==(vals[r]||'')) t+='…';
+            ctx.fillText(t,cx+dcW/2,ry+RH/2+3);
+          }
+          cx+=dcW;
+        }
+        ry+=RH;
+      }
+      y+=PH2+RH*8+8;
+    }
+    const pc=document.createElement('canvas'); pc.width=PW; pc.height=PH;
+    const pctx=pc.getContext('2d');
+    const pw=window.open('','_blank');
+    pw.document.write('<!DOCTYPE html><html><head><title>样品清单</title><style>*{margin:0;padding:0}body{background:#fff}img{display:block;width:100%;page-break-after:always}@media print{@page{size:A3 landscape;margin:0}}</style></head><body>');
+    for(let p=0;p<pages;p++) {
+      pctx.clearRect(0,0,PW,PH); pctx.fillStyle='#fff'; pctx.fillRect(0,0,PW,PH);
+      pctx.drawImage(cv,0,-p*PH);
+      pw.document.write(`<img src="${pc.toDataURL('image/jpeg',0.92)}">`);
+    }
+    pw.document.write('</body></html>'); pw.document.close();
+    setTimeout(()=>pw.print(),500);
+    hideLoad();
+  } catch(e) { hideLoad(); toast('导出失败:'+e.message); }
+}
+
+function dc(ctx,x,y,w,h,bc,fc) {
+  ctx.fillStyle=fc; ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle=bc; ctx.lineWidth=0.8; ctx.strokeRect(x+.4,y+.4,w-.8,h-.8);
+}
+function di(ctx,src,x,y,w,h) {
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{ const s=Math.min(w/img.width,h/img.height); ctx.drawImage(img,x+(w-img.width*s)/2,y+(h-img.height*s)/2,img.width*s,img.height*s); res(); };
+    img.onerror=res; img.src=src;
+  });
+}
+
+function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2500); }
+function showLoad(txt) { document.getElementById('loadTxt').textContent=txt||'处理中...'; document.getElementById('loading').style.display='flex'; }
+function hideLoad() { document.getElementById('loading').style.display='none'; }
+</script>
+</body>
+</html>
