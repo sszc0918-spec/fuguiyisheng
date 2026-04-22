@@ -1,90 +1,340 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="富贵一生">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <title>AAA富贵一生 Excel</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg:#0f1115;
+  --panel:#171a21;
+  --panel-2:#1d2129;
+  --line:#2a2f3a;
+  --text:#f2f4f8;
+  --muted:#8c94a3;
+  --accent:#f2f4f8;
+  --accent-text:#0f1115;
+  --danger:#ff6b6b;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:#111;color:#f0f0f0;min-height:100vh;overflow-x:hidden}
-#splash{position:fixed;inset:0;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
-#splash img{width:160px;height:160px;border-radius:36px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
-#splash h1{font-size:20px;font-weight:700;margin-top:20px;letter-spacing:1px}
-#splash .enter-btn{margin-top:30px;background:#f0f0f0;color:#111;border:none;padding:14px 48px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer}
-#splash .enter-btn:active{background:#ccc}
-#app{display:none;flex-direction:column;min-height:100vh}
-.topbar{background:#1a1a1a;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;position:sticky;top:0;z-index:100}
-.topbar h1{font-size:16px;font-weight:700}
-.topbar-btns{display:flex;gap:8px}
-.tbtn{background:#252525;color:#f0f0f0;border:none;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer}
-.tbtn:active{background:#333}
-.tbtn-white{background:#f0f0f0;color:#111}
-.tbtn-white:active{background:#ccc}
-.gset{background:#1a1a1a;padding:10px 14px;border-bottom:1px solid #222;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.gset-item{display:flex;flex-direction:column;gap:3px}
-.gset-item label{font-size:10px;color:#555;font-weight:500}
-.gset-item input{background:#222;border:1px solid #2a2a2a;color:#f0f0f0;padding:6px 8px;border-radius:7px;font-size:13px;outline:none;width:130px}
-.gset-item input.short{width:70px}
-.gset-item input.xshort{width:55px}
-#cards{padding:12px;display:flex;flex-direction:column;gap:10px;padding-bottom:80px}
-.card{background:#1a1a1a;border-radius:14px;border:1px solid #222;overflow:hidden}
-.card-hdr{background:#1e1e1e;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222}
-.card-hdr span{font-size:12px;font-weight:600;color:#666}
-.card-hdr button{background:none;border:none;color:#444;font-size:20px;cursor:pointer;line-height:1;padding:0 4px}
-.card-hdr button:active{color:#c0392b}
-.card-body{display:flex;gap:10px;padding:10px}
-.photo-col{flex-shrink:0;display:flex;flex-direction:column;gap:6px}
-.photo-box{width:100px;height:120px;background:#1e1e1e;border-radius:10px;border:1.5px dashed #2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
-.photo-box img{width:100%;height:100%;object-fit:cover}
-.photo-box .ph{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
-.photo-box .ph i{font-size:26px;line-height:1}
-.photo-box .ph p{font-size:10px;color:#444}
-.photo-btns{display:flex;gap:4px}
-.photo-btns button{flex:1;background:#1e1e1e;border:1px solid #2a2a2a;color:#777;padding:5px 0;border-radius:6px;font-size:10px;cursor:pointer}
-.photo-btns button:active{background:#2a2a2a}
-.fields-col{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
-.frow{display:flex;flex-direction:column;gap:2px}
-.frow label{font-size:10px;color:#555;font-weight:500}
-.frow input,.frow select{background:#1e1e1e;border:1px solid #222;color:#f0f0f0;padding:6px 8px;border-radius:7px;font-size:12px;outline:none;width:100%;-webkit-appearance:none}
-.frow input:focus,.frow select:focus{border-color:#3a3a3a}
-.style-row{display:flex;gap:4px;align-items:center}
-.style-row input:first-child{flex:1.2}
-.style-row span{color:#444;font-size:13px;flex-shrink:0}
-.style-row input:last-child{flex:0.8}
-.add-btn{background:#1a1a1a;border:1.5px dashed #252525;color:#444;padding:14px;border-radius:14px;font-size:13px;cursor:pointer;text-align:center;width:100%}
-.add-btn:active{background:#1e1e1e}
-.botbar{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;border-top:1px solid #222;padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:100}
-.botbar button{flex:1;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer}
-.botbar .b-add{background:#222;color:#f0f0f0}
-.botbar .b-add:active{background:#2a2a2a}
-.botbar .b-export{background:#f0f0f0;color:#111}
-.botbar .b-export:active{background:#ccc}
-/* 预览弹窗 */
-#preview{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9990;display:none;flex-direction:column}
-#preview-toolbar{background:#1a1a1a;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#preview-toolbar span{font-size:14px;font-weight:600}
-#preview-toolbar .close-btn{background:#333;color:#f0f0f0;border:none;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer}
-#preview-toolbar .save-btn{background:#f0f0f0;color:#111;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
-#preview-scroll{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center}
-#preview-scroll img{width:100%;max-width:800px;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.5)}
-#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2a2a2a;color:#f0f0f0;padding:9px 18px;border-radius:20px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;white-space:nowrap}
-#loading{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9998}
-#loading p{font-size:13px;color:#f0f0f0}
-.spin{width:34px;height:34px;border:3px solid #333;border-top-color:#f0f0f0;border-radius:50%;animation:sp .7s linear infinite}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 35%),
+    linear-gradient(180deg, #12151b 0%, #0f1115 100%);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+button,input,select{font:inherit}
+#splash{
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,255,255,.10), transparent 30%),
+    linear-gradient(180deg, #11141a, #0d0f13);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  padding:24px;
+}
+#splash img{
+  width:156px;
+  height:156px;
+  border-radius:34px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+#splash h1{
+  margin-top:20px;
+  font-size:22px;
+  letter-spacing:.5px;
+}
+#splash p{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:13px;
+  text-align:center;
+  line-height:1.6;
+}
+.enter-btn{
+  margin-top:28px;
+  border:none;
+  border-radius:16px;
+  padding:14px 42px;
+  background:var(--accent);
+  color:var(--accent-text);
+  font-size:16px;
+  font-weight:700;
+}
+#app{
+  display:none;
+  min-height:100vh;
+  flex-direction:column;
+}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(15,17,21,.92);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.topbar h1{
+  font-size:16px;
+  font-weight:700;
+}
+.topbar-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.tbtn,.botbar button,.add-btn{
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+}
+.tbtn{
+  padding:8px 12px;
+  background:var(--panel-2);
+  color:var(--text);
+  font-size:12px;
+}
+.tbtn.primary{
+  background:var(--accent);
+  color:var(--accent-text);
+  font-weight:700;
+}
+.global{
+  padding:12px 16px 16px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.global-item{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;
+  padding:10px;
+}
+.global-item label{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.global-item input{
+  width:100%;
+  background:#12151b;
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:10px 11px;
+  border-radius:10px;
+  outline:none;
+}
+#cards{
+  padding:14px 14px 96px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;
+  overflow:hidden;
+}
+.card-hdr{
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:rgba(255,255,255,.02);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.card-hdr span{
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+}
+.card-hdr button{
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius:8px;
+  background:transparent;
+  color:var(--danger);
+  font-size:22px;
+  line-height:1;
+}
+.card-body{
+  padding:12px;
+  display:grid;
+  grid-template-columns:112px minmax(0,1fr);
+  gap:12px;
+}
+.photo-col{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.photo-box{
+  width:100%;
+  aspect-ratio:5/6;
+  background:#12151b;
+  border:1.5px dashed rgba(255,255,255,.16);
+  border-radius:14px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--muted);
+  position:relative;
+}
+.photo-box img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.photo-placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  pointer-events:none;
+  text-align:center;
+}
+.photo-placeholder strong{font-size:24px;line-height:1}
+.photo-placeholder span{font-size:10px}
+.photo-btns{display:flex;gap:6px}
+.photo-btns button{
+  flex:1;
+  padding:8px 0;
+  background:#12151b;
+  border:1px solid var(--line);
+  color:var(--text);
+  font-size:11px;
+}
+.fields-col{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+}
+.frow{
+  display:grid;
+  grid-template-columns:96px minmax(0,1fr);
+  gap:8px;
+  align-items:center;
+}
+.frow label{
+  font-size:11px;
+  color:var(--muted);
+}
+.frow input,.frow select{
+  width:100%;
+  background:#12151b;
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:10px;
+  padding:9px 10px;
+  outline:none;
+  min-width:0;
+}
+.style-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 14px minmax(0,.7fr);
+  gap:6px;
+  align-items:center;
+}
+.style-row span{color:var(--muted);text-align:center}
+.add-btn{
+  width:100%;
+  padding:14px;
+  background:transparent;
+  border:1.5px dashed rgba(255,255,255,.14);
+  color:var(--muted);
+  font-size:13px;
+}
+.botbar{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:60;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(15,17,21,.96);
+  backdrop-filter:blur(14px);
+  border-top:1px solid rgba(255,255,255,.06);
+  display:flex;
+  gap:8px;
+}
+.botbar button{
+  flex:1;
+  padding:13px 12px;
+  font-size:14px;
+  font-weight:700;
+}
+.botbar .b-add{background:#1b2028;color:var(--text)}
+.botbar .b-export{background:var(--accent);color:var(--accent-text)}
+#toast{
+  position:fixed;
+  left:50%;
+  bottom:96px;
+  transform:translateX(-50%);
+  background:#20242d;
+  color:var(--text);
+  padding:10px 16px;
+  border-radius:999px;
+  font-size:12px;
+  opacity:0;
+  transition:opacity .25s;
+  pointer-events:none;
+  z-index:1000;
+  white-space:nowrap;
+}
+#loading{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.66);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+  z-index:9999;
+}
+.spin{
+  width:34px;
+  height:34px;
+  border:3px solid rgba(255,255,255,.12);
+  border-top-color:var(--text);
+  border-radius:50%;
+  animation:sp 0.7s linear infinite;
+}
 @keyframes sp{to{transform:rotate(360deg)}}
+@media (max-width: 860px){
+  .global{grid-template-columns:1fr}
+  .card-body{grid-template-columns:1fr}
+  .photo-col{max-width:170px}
+  .frow{grid-template-columns:84px minmax(0,1fr)}
+}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-
 <div id="splash">
-  <img id="splashIcon" src="" alt="">
+  <img id="splashIcon" src="icon.png" alt="富贵一生">
   <h1>AAA富贵一生 Excel</h1>
-  <button class="enter-btn" onclick="enterApp()">进 入</button>
+  <p>可编辑 PDF 版，文字会直接写入 PDF，不再生成截图页。</p>
+  <button class="enter-btn" onclick="enterApp()">进入</button>
 </div>
 
 <div id="app">
@@ -92,464 +342,488 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
     <h1>富贵一生 Excel</h1>
     <div class="topbar-btns">
       <button class="tbtn" onclick="batchImport()">批量导入</button>
-      <button class="tbtn tbtn-white" onclick="exportPDF()">导出 PDF</button>
+      <button class="tbtn primary" onclick="exportPDF()">导出 PDF</button>
     </div>
   </div>
-  <div class="gset">
-    <div class="gset-item">
+
+  <div class="global">
+    <div class="global-item">
       <label>Supplier（全组共用）</label>
       <input id="gSupplier" type="text" placeholder="供应商" oninput="syncSupplier()">
     </div>
-    <div class="gset-item">
+    <div class="global-item">
       <label>Style 前缀</label>
-      <input id="gPrefix" type="text" placeholder="如 PAG26" class="short" oninput="syncPrefix()">
+      <input id="gPrefix" type="text" placeholder="如 PAG26" oninput="syncPrefix()">
     </div>
-    <div class="gset-item">
+    <div class="global-item">
       <label>起始编号</label>
-      <input id="gStart" type="number" value="1" min="1" class="xshort" oninput="syncNumbers()">
+      <input id="gStart" type="number" value="1" min="1" oninput="syncNumbers()">
     </div>
   </div>
-  <div id="cards">
+
+  <div id="cards"></div>
+  <div style="padding:0 14px 88px">
     <button class="add-btn" onclick="addCard()">＋ 添加产品</button>
   </div>
+
   <div class="botbar">
     <button class="b-add" onclick="addCard()">＋ 添加</button>
     <button class="b-export" onclick="exportPDF()">导出 PDF</button>
   </div>
 </div>
 
-<!-- 预览弹窗：显示生成的图片，用户长按保存 -->
-<div id="preview">
-  <div id="preview-toolbar">
-    <span>预览 — 长按图片保存</span>
-    <div style="display:flex;gap:8px">
-      <button class="close-btn" onclick="closePreview()">关闭</button>
-    </div>
-  </div>
-  <div id="preview-scroll"></div>
-</div>
-
 <input type="file" id="fileMulti" accept="image/*,.heic,.heif" multiple style="display:none">
 <input type="file" id="fileSingle" accept="image/*,.heic,.heif" style="display:none">
 <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none">
+<iframe id="printFrame" style="display:none;width:0;height:0;border:0;"></iframe>
 <div id="toast"></div>
-<div id="loading"><div class="spin"></div><p id="loadTxt">处理中...</p></div>
-
+<div id="loading"><div class="spin"></div><div id="loadTxt">处理中...</div></div>
 <script>
-document.getElementById('splashIcon').src = 'data:image/jpeg;base64,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';
 
-let cards = [];
-let _cardId = 0;
+var cards = [];
+var nextId = 1;
+var persistTimer = null;
+var SAMPLE_OPTIONS = ['Development Sample', 'Bought Sample', 'Bulk Sample'];
+var PADDING_OPTIONS = ['', 'Flat Padding', 'Fake Down', '90%Down 10%Feather'];
+var FIELD_LABELS = ['Supplier', 'Style No', 'Sample', 'Shell Fabric', 'Lining', 'Padding/Filler', 'FOB Price', 'Comments'];
+var FIELD_KEYS = ['supplier', 'prefix', 'suffix', 'sample', 'shell', 'lining', 'padding', 'fob', 'comments'];
+var STORAGE_KEY = 'fgys_mobile_editor_state_v1';
 
 function enterApp() {
-  const s = document.getElementById('splash');
-  s.style.opacity = '0';
-  s.style.transition = 'opacity 0.4s';
-  setTimeout(() => {
-    s.style.display = 'none';
-    const app = document.getElementById('app');
-    app.style.display = 'flex';
-    app.style.flexDirection = 'column';
-  }, 400);
+  var splash = document.getElementById('splash');
+  splash.style.opacity = '0';
+  splash.style.transition = 'opacity .35s ease';
+  setTimeout(function () {
+    splash.style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+  }, 350);
 }
 
-function addCard(data) {
-  const id = ++_cardId;
-  const idx = cards.length;
-  const c = {
-    id, imgData: null,
-    supplier: document.getElementById('gSupplier').value,
-    prefix: document.getElementById('gPrefix').value,
-    suffix: numSuffix(idx),
-    sample: 'Development Sample',
-    shell: '', lining: '', padding: '', fob: '', comments: '',
-    ...data
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function currentStart() {
+  var v = parseInt(document.getElementById('gStart').value, 10);
+  return isNaN(v) || v < 1 ? 1 : v;
+}
+
+function suffixForIndex(index) {
+  return String(currentStart() + index).padStart(2, '0');
+}
+
+function createCard(data) {
+  var index = cards.length;
+  var globalSupplier = document.getElementById('gSupplier').value || '';
+  var globalPrefix = document.getElementById('gPrefix').value || '';
+  return {
+    id: nextId++,
+    supplier: data && data.supplier != null ? data.supplier : globalSupplier,
+    prefix: data && data.prefix != null ? data.prefix : globalPrefix,
+    suffix: data && data.suffix != null ? data.suffix : suffixForIndex(index),
+    sample: data && data.sample != null ? data.sample : SAMPLE_OPTIONS[0],
+    shell: data && data.shell != null ? data.shell : '',
+    lining: data && data.lining != null ? data.lining : '',
+    padding: data && data.padding != null ? data.padding : '',
+    fob: data && data.fob != null ? data.fob : '',
+    comments: data && data.comments != null ? data.comments : '',
+    image: data && data.image ? data.image : null,
+    imageType: data && data.imageType ? data.imageType : '',
+    imageName: data && data.imageName ? data.imageName : ''
   };
-  cards.push(c);
-  renderCard(c, idx);
 }
 
-function numSuffix(idx) {
-  const s = parseInt(document.getElementById('gStart').value) || 1;
-  return String(s + idx).padStart(2, '0');
+function renderCards() {
+  var wrap = document.getElementById('cards');
+  wrap.innerHTML = '';
+  for (var i = 0; i < cards.length; i++) {
+    wrap.appendChild(renderCard(cards[i], i));
+  }
+  schedulePersist(true);
 }
 
-function renderCard(c, idx) {
-  const container = document.getElementById('cards');
-  const addBtn = container.querySelector('.add-btn');
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.id = 'c' + c.id;
-  div.innerHTML = `
-    <div class="card-hdr">
-      <span>产品 ${idx + 1}</span>
-      <button onclick="delCard(${c.id})">×</button>
-    </div>
-    <div class="card-body">
-      <div class="photo-col">
-        <div class="photo-box" id="pb${c.id}" onclick="pickOne(${c.id})">
-          <div class="ph"><i>📷</i><p>点击添加</p></div>
-        </div>
-        <div class="photo-btns">
-          <button onclick="shoot(${c.id})">拍照</button>
-          <button onclick="pickOne(${c.id})">相册</button>
-        </div>
-      </div>
-      <div class="fields-col">
-        <div class="frow"><label>Supplier</label>
-          <input value="${x(c.supplier)}" oninput="upd(${c.id},'supplier',this.value)"></div>
-        <div class="frow"><label>Style No</label>
-          <div class="style-row">
-            <input value="${x(c.prefix)}" placeholder="前缀" oninput="upd(${c.id},'prefix',this.value)">
-            <span>-</span>
-            <input value="${x(c.suffix)}" placeholder="编号" oninput="upd(${c.id},'suffix',this.value)">
-          </div></div>
-        <div class="frow"><label>Sample</label>
-          <select onchange="upd(${c.id},'sample',this.value)">
-            ${['Development Sample','Bought Sample','Bulk Sample'].map(o=>`<option ${c.sample===o?'selected':''}>${o}</option>`).join('')}
-          </select></div>
-        <div class="frow"><label>Shell Fabric</label>
-          <input value="${x(c.shell)}" oninput="upd(${c.id},'shell',this.value)"></div>
-        <div class="frow"><label>Lining</label>
-          <input value="${x(c.lining)}" oninput="upd(${c.id},'lining',this.value)"></div>
-        <div class="frow"><label>Padding/Filler</label>
-          <select onchange="upd(${c.id},'padding',this.value)">
-            ${['','Flat Padding','Fake Down','90%Down 10%Feather'].map(o=>`<option ${c.padding===o?'selected':''}>${o}</option>`).join('')}
-          </select></div>
-        <div class="frow"><label>FOB Price</label>
-          <input value="${x(c.fob)}" oninput="upd(${c.id},'fob',this.value)"></div>
-        <div class="frow"><label>Comments</label>
-          <input value="${x(c.comments)}" oninput="upd(${c.id},'comments',this.value)"></div>
-      </div>
-    </div>`;
-  container.insertBefore(div, addBtn);
+function renderCard(card, index) {
+  var el = document.createElement('div');
+  el.className = 'card';
+  el.id = 'card-' + card.id;
+  var sampleOptions = SAMPLE_OPTIONS.map(function (opt) {
+    return '<option value="' + escapeHtml(opt) + '"' + (card.sample === opt ? ' selected' : '') + '>' + escapeHtml(opt) + '</option>';
+  }).join('');
+  var paddingOptions = PADDING_OPTIONS.map(function (opt) {
+    return '<option value="' + escapeHtml(opt) + '"' + (card.padding === opt ? ' selected' : '') + '>' + escapeHtml(opt || ' ') + '</option>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="card-hdr">' +
+      '<span>产品 ' + (index + 1) + '</span>' +
+      '<button type="button" aria-label="删除" data-action="delete">×</button>' +
+    '</div>' +
+    '<div class="card-body">' +
+      '<div class="photo-col">' +
+        '<div class="photo-box" data-action="pick">' +
+          '<div class="photo-placeholder">' +
+            '<strong>📷</strong>' +
+            '<span>点击添加</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="photo-btns">' +
+          '<button type="button" data-action="shoot">拍照</button>' +
+          '<button type="button" data-action="pick">相册</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="fields-col">' +
+        '<div class="frow"><label>Supplier</label><input data-field="supplier" type="text"></div>' +
+        '<div class="frow"><label>Style No</label><div class="style-row">' +
+          '<input data-field="prefix" type="text" placeholder="前缀">' +
+          '<span>-</span>' +
+          '<input data-field="suffix" type="text" placeholder="编号">' +
+        '</div></div>' +
+        '<div class="frow"><label>Sample</label><select data-field="sample">' + sampleOptions + '</select></div>' +
+        '<div class="frow"><label>Shell Fabric</label><input data-field="shell" type="text"></div>' +
+        '<div class="frow"><label>Lining</label><input data-field="lining" type="text"></div>' +
+        '<div class="frow"><label>Padding/Filler</label><select data-field="padding">' + paddingOptions + '</select></div>' +
+        '<div class="frow"><label>FOB Price</label><input data-field="fob" type="text"></div>' +
+        '<div class="frow"><label>Comments</label><input data-field="comments" type="text"></div>' +
+      '</div>' +
+    '</div>';
+
+  var preview = el.querySelector('.photo-box');
+  if (card.image) {
+    preview.innerHTML = '<img src="' + card.image + '" alt="">';
+  }
+
+  el.querySelector('[data-action="delete"]').addEventListener('click', function () {
+    delCard(card.id);
+  });
+  el.querySelectorAll('[data-action="pick"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      pickSingle(card.id);
+    });
+  });
+  el.querySelector('[data-action="shoot"]').addEventListener('click', function () {
+    shoot(card.id);
+  });
+
+  FIELD_KEYS.forEach(function (field) {
+    var node = el.querySelector('[data-field="' + field + '"]');
+    if (!node) return;
+    node.value = card[field] || '';
+    node.addEventListener('input', function () {
+      card[field] = node.value;
+      schedulePersist();
+    });
+    node.addEventListener('change', function () {
+      card[field] = node.value;
+      schedulePersist();
+    });
+  });
+
+  return el;
 }
 
-function x(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-function upd(id,f,v){const c=cards.find(c=>c.id===id);if(c)c[f]=v;}
+function addCard(data, silent) {
+  cards.push(createCard(data || {}));
+  if (!silent) renderCards();
+  schedulePersist();
+}
 
 function delCard(id) {
-  if(!confirm('删除？'))return;
-  cards=cards.filter(c=>c.id!==id);
-  document.getElementById('c'+id)?.remove();
-  document.querySelectorAll('.card-hdr span').forEach((el,i)=>el.textContent=`产品 ${i+1}`);
+  if (!confirm('删除这个产品？')) return;
+  cards = cards.filter(function (card) { return card.id !== id; });
+  syncNumbers(true);
+  renderCards();
+  schedulePersist();
 }
 
-function syncSupplier(){
-  const v=document.getElementById('gSupplier').value;
-  cards.forEach(c=>{c.supplier=v;const el=document.querySelector(`#c${c.id} .fields-col input`);if(el)el.value=v;});
-}
-function syncPrefix(){
-  const v=document.getElementById('gPrefix').value;
-  cards.forEach(c=>{c.prefix=v;const inputs=document.querySelectorAll(`#c${c.id} .style-row input`);if(inputs[0])inputs[0].value=v;});
-}
-function syncNumbers(){
-  const s=parseInt(document.getElementById('gStart').value)||1;
-  cards.forEach((c,i)=>{c.suffix=String(s+i).padStart(2,'0');const inputs=document.querySelectorAll(`#c${c.id} .style-row input`);if(inputs[1])inputs[1].value=c.suffix;});
+function syncSupplier() {
+  var value = document.getElementById('gSupplier').value;
+  cards.forEach(function (card) { card.supplier = value; });
+  document.querySelectorAll('[data-field="supplier"]').forEach(function (node) { node.value = value; });
+  schedulePersist();
 }
 
-function pickOne(id){
-  const inp=document.getElementById('fileSingle');
-  inp.onchange=e=>loadImg(e.target.files[0],id);
-  inp.value='';inp.click();
+function syncPrefix() {
+  var value = document.getElementById('gPrefix').value;
+  cards.forEach(function (card) { card.prefix = value; });
+  document.querySelectorAll('[data-field="prefix"]').forEach(function (node) { node.value = value; });
+  schedulePersist();
 }
-function shoot(id){
-  const inp=document.getElementById('fileCamera');
-  inp.onchange=e=>loadImg(e.target.files[0],id);
-  inp.value='';inp.click();
+
+function syncNumbers(skipRender) {
+  var start = currentStart();
+  cards.forEach(function (card, index) {
+    card.suffix = String(start + index).padStart(2, '0');
+  });
+  document.querySelectorAll('[data-field="suffix"]').forEach(function (node, index) {
+    node.value = String(start + index).padStart(2, '0');
+  });
+  if (!skipRender) {
+    renderCards();
+  }
+  schedulePersist();
 }
-function batchImport(){
-  const inp=document.getElementById('fileMulti');
-  inp.onchange=async e=>{
-    const files=Array.from(e.target.files);
-    showLoad(`导入 0/${files.length}`);
-    for(let i=0;i<files.length;i++){
-      document.getElementById('loadTxt').textContent=`压缩 ${i+1}/${files.length}`;
-      const data=await compress(files[i]);
-      addCard({imgData:data});
-    }
-    hideLoad();toast(`已导入 ${files.length} 张`);
+
+function ensureCardExists(id) {
+  for (var i = 0; i < cards.length; i++) {
+    if (cards[i].id === id) return cards[i];
+  }
+  return null;
+}
+
+function pickSingle(id) {
+  var input = document.getElementById('fileSingle');
+  input.onchange = function (e) {
+    if (e.target.files && e.target.files[0]) loadImg(e.target.files[0], id);
   };
-  inp.value='';inp.click();
+  input.value = '';
+  input.click();
 }
-async function loadImg(file,id){
-  if(!file)return;
-  const data=await compress(file);
-  const c=cards.find(c=>c.id===id);
-  if(c){
-    c.imgData=data;
-    const box=document.getElementById('pb'+id);
-    if(box)box.innerHTML=`<img src="${data}">`;
+
+function shoot(id) {
+  var input = document.getElementById('fileCamera');
+  input.onchange = function (e) {
+    if (e.target.files && e.target.files[0]) loadImg(e.target.files[0], id);
+  };
+  input.value = '';
+  input.click();
+}
+
+function batchImport() {
+  var input = document.getElementById('fileMulti');
+  input.onchange = async function (e) {
+    var files = Array.prototype.slice.call(e.target.files || []);
+    if (!files.length) return;
+    showLoad('导入 0/' + files.length);
+    var added = 0;
+    for (var i = 0; i < files.length; i++) {
+      document.getElementById('loadTxt').textContent = '导入 ' + (i + 1) + '/' + files.length;
+      var data = await readImageFile(files[i]);
+      addCard({
+        image: data.dataUrl,
+        imageType: data.type,
+        imageName: files[i].name
+      }, true);
+      added++;
+    }
+    renderCards();
+    hideLoad();
+    toast('已导入 ' + added + ' 张');
+  };
+  input.value = '';
+  input.click();
+}
+
+async function loadImg(file, id) {
+  if (!file) return;
+  var data = await readImageFile(file);
+  var card = ensureCardExists(id);
+  if (!card) return;
+  card.image = data.dataUrl;
+  card.imageType = data.type;
+  card.imageName = file.name;
+  var box = document.querySelector('#card-' + id + ' .photo-box');
+  if (box) {
+    box.innerHTML = '<img src="' + data.dataUrl + '" alt="">';
   }
+  schedulePersist();
 }
-function compress(file,maxPx=1600,q=0.88){
-  return new Promise(res=>{
-    const r=new FileReader();
-    r.onload=e=>{
-      const img=new Image();
-      img.onload=()=>{
-        let w=img.width,h=img.height;
-        if(w>maxPx||h>maxPx){
-          if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}
-          else{w=Math.round(w*maxPx/h);h=maxPx;}
-        }
-        const cv=document.createElement('canvas');
-        cv.width=w;cv.height=h;
-        cv.getContext('2d').drawImage(img,0,0,w,h);
-        res(cv.toDataURL('image/jpeg',q));
-      };
-      img.src=e.target.result;
+
+function readImageFile(file) {
+  return new Promise(function (resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      resolve({
+        dataUrl: e.target.result,
+        type: file.type || inferMime(file.name),
+        name: file.name
+      });
     };
-    r.readAsDataURL(file);
+    reader.onerror = function () { reject(reader.error || new Error('读取图片失败')); };
+    reader.readAsDataURL(file);
   });
 }
 
-// ── 导出 PDF：生成图片页面，在应用内预览，用户长按保存 ──
-async function exportPDF() {
-  if (!cards.length) { toast('请先添加产品'); return; }
-  showLoad('生成 PDF...');
-  await new Promise(r => setTimeout(r, 50));
+function inferMime(name) {
+  var ext = String(name || '').toLowerCase().split('.').pop();
+  if (ext === 'png') return 'image/png';
+  if (ext === 'webp') return 'image/webp';
+  if (ext === 'gif') return 'image/gif';
+  if (ext === 'bmp') return 'image/bmp';
+  return 'image/jpeg';
+}
+
+function schedulePersist(immediate) {
+  if (persistTimer) clearTimeout(persistTimer);
+  var save = function () {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        gSupplier: document.getElementById('gSupplier').value || '',
+        gPrefix: document.getElementById('gPrefix').value || '',
+        gStart: document.getElementById('gStart').value || '1',
+        cards: cards
+      }));
+    } catch (e) {}
+  };
+  if (immediate) {
+    save();
+    return;
+  }
+  persistTimer = setTimeout(save, 120);
+}
+
+function restoreState() {
   try {
-    const { jsPDF } = window.jspdf;
-    // A3 横向，单位 mm
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a3' });
-    const PW_MM = 420, PH_MM = 297;
-    const ML = 8, MT = 12;
-    const contentW = PW_MM - ML * 2;
-    const colW0 = 32; // 标签列宽 mm
-    const dataColW = (contentW - colW0) / 5;
-    const PHOTO_H = 52; // mm
-    const ROW_H = 6;    // mm
-    const LABELS = ['supplier ','Style no','Sample','Shell Fabric','Lining','Padding/Filler','FOB Price','CMMTS'];
-    const groups = [];
-    for (let i = 0; i < cards.length; i += 5) groups.push(cards.slice(i, i + 5));
-    const groupH = PHOTO_H + ROW_H * 8 + 4;
-    const groupsPerPage = Math.floor((PH_MM - MT - 10) / groupH);
-
-    let pageIdx = 0;
-    for (let gi = 0; gi < groups.length; gi++) {
-      const pageNum = Math.floor(gi / groupsPerPage);
-      if (gi > 0 && gi % groupsPerPage === 0) {
-        pdf.addPage('a3', 'landscape');
-        pageIdx++;
-      }
-      const group = groups[gi];
-      const localIdx = gi % groupsPerPage;
-      let y = MT + localIdx * groupH;
-
-      // 标题（只在每页第一组前显示）
-      if (localIdx === 0) {
-        pdf.setFontSize(13); pdf.setFont('helvetica','bold');
-        pdf.text('SAMPLES MINI SKETCH- MENS', ML, y - 4);
-      }
-
-      // Photo 行
-      pdf.setFillColor(240,240,240); pdf.setDrawColor(170,170,170);
-      pdf.rect(ML, y, colW0, PHOTO_H, 'FD');
-      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(80,80,80);
-      pdf.text('Photo', ML + colW0/2, y + PHOTO_H/2 + 1, {align:'center'});
-
-      let cx = ML + colW0;
-      for (let p = 0; p < 5; p++) {
-        pdf.setFillColor(255,255,255); pdf.setDrawColor(170,170,170);
-        pdf.rect(cx, y, dataColW, PHOTO_H, 'FD');
-        const card = group[p];
-        if (card && card.imgData) {
-          try {
-            // 计算图片适配尺寸
-            const imgEl = new Image();
-            await new Promise(res => { imgEl.onload = res; imgEl.src = card.imgData; });
-            const iw = imgEl.width, ih = imgEl.height;
-            const scale = Math.min((dataColW-2)/iw * (25.4/72) * 72/25.4, (PHOTO_H-2)/ih * (25.4/72) * 72/25.4);
-            // 直接用 mm 计算
-            const fitW = iw * scale * 25.4 / 96;
-            const fitH = ih * scale * 25.4 / 96;
-            const imgX = cx + (dataColW - fitW) / 2;
-            const imgY = y + (PHOTO_H - fitH) / 2;
-            pdf.addImage(card.imgData, 'JPEG', imgX, imgY, fitW, fitH);
-          } catch(e) { console.warn('图片嵌入失败', e); }
-        }
-        cx += dataColW;
-      }
-
-      // 数据行
-      let ry = y + PHOTO_H;
-      for (let r = 0; r < LABELS.length; r++) {
-        const bg = r % 2 === 0 ? [232,237,245] : [245,245,245];
-        pdf.setFillColor(...bg); pdf.setDrawColor(170,170,170);
-        pdf.rect(ML, ry, colW0, ROW_H, 'FD');
-        pdf.setFontSize(7); pdf.setFont('helvetica','bold'); pdf.setTextColor(30,30,30);
-        pdf.text(LABELS[r], ML + colW0/2, ry + ROW_H/2 + 1, {align:'center'});
-
-        cx = ML + colW0;
-        for (let p = 0; p < 5; p++) {
-          pdf.setFillColor(255,255,255); pdf.setDrawColor(170,170,170);
-          pdf.rect(cx, ry, dataColW, ROW_H, 'FD');
-          const card = group[p];
-          if (card) {
-            let val = '';
-            if(r===0) val=card.supplier||'';
-            else if(r===1) val=`${card.prefix||''}-${card.suffix||''}`;
-            else if(r===2) val=card.sample||'';
-            else if(r===3) val=card.shell||'';
-            else if(r===4) val=card.lining||'';
-            else if(r===5) val=card.padding||'';
-            else if(r===6) val=card.fob||'';
-            else if(r===7) val=card.comments||'';
-            pdf.setFontSize(7); pdf.setFont('helvetica','normal'); pdf.setTextColor(30,30,30);
-            // 截断过长文字
-            const maxW = dataColW - 2;
-            let txt = val;
-            while (txt.length > 0 && pdf.getTextWidth(txt) > maxW) txt = txt.slice(0,-1);
-            if (txt !== val) txt += '…';
-            pdf.text(txt, cx + dataColW/2, ry + ROW_H/2 + 1, {align:'center'});
-          }
-          cx += dataColW;
-        }
-        ry += ROW_H;
-      }
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    document.getElementById('gSupplier').value = data.gSupplier || '';
+    document.getElementById('gPrefix').value = data.gPrefix || '';
+    document.getElementById('gStart').value = data.gStart || '1';
+    cards = [];
+    nextId = 1;
+    if (data.cards && data.cards.length) {
+      data.cards.forEach(function (item) {
+        cards.push(createCard(item));
+      });
+      nextId = cards.reduce(function (max, card) { return Math.max(max, card.id); }, 0) + 1;
+      return true;
     }
-
-    pdf.save('样品清单.pdf');
-    hideLoad();
-    toast('PDF 已下载');
-  } catch(e) {
-    hideLoad();
-    toast('生成失败: ' + e.message);
-    console.error(e);
-  }
+  } catch (e) {}
+  return false;
 }
 
-async function buildPages() {
-  const PW = 1587, PH = 1123;
-  const ML = 30, MR = 30, MT = 50;
-  const contentW = PW - ML - MR;
-  const colW0 = 120, dataColW = (contentW - colW0) / 5;
-  const PHOTO_H = 200, ROW_H = 22;
-  const LABELS = ['supplier ','Style no','Sample','Shell Fabric','Lining','Padding/Filler','FOB Price','CMMTS'];
+function escapeAttr(value) {
+  return escapeHtml(value).replace(/`/g, '&#96;');
+}
 
-  const groups = [];
-  for (let i = 0; i < cards.length; i += 5) groups.push(cards.slice(i, i + 5));
-
-  const groupH = PHOTO_H + ROW_H * 8 + 12;
-  const groupsPerPage = Math.floor((PH - MT - 20) / groupH);
-  const pageGroups = [];
-  for (let i = 0; i < groups.length; i += groupsPerPage) {
-    pageGroups.push(groups.slice(i, i + groupsPerPage));
-  }
-
-  const pageImages = [];
-  for (let pi = 0; pi < pageGroups.length; pi++) {
-    document.getElementById('loadTxt').textContent = `生成第 ${pi+1}/${pageGroups.length} 页`;
-    const canvas = document.createElement('canvas');
-    canvas.width = PW; canvas.height = PH;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PW, PH);
-
-    // 标题
-    ctx.fillStyle = '#000'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'left';
-    ctx.fillText('SAMPLES MINI SKETCH- MENS', ML, MT - 15);
-
-    let y = MT;
-    for (const group of pageGroups[pi]) {
-      // Photo 行
-      drawCell(ctx, ML, y, colW0, PHOTO_H, '#aaa', '#f0f0f0');
-      ctx.fillStyle = '#555'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
-      ctx.fillText('Photo', ML + colW0/2, y + PHOTO_H/2 + 4);
-
-      let cx = ML + colW0;
-      for (let p = 0; p < 5; p++) {
-        drawCell(ctx, cx, y, dataColW, PHOTO_H, '#aaa', '#fff');
-        const card = group[p];
-        if (card && card.imgData) await drawImage(ctx, card.imgData, cx+3, y+3, dataColW-6, PHOTO_H-6);
-        cx += dataColW;
-      }
-
-      // 数据行
-      let ry = y + PHOTO_H;
-      const fieldKeys = ['supplier','style_no','sample','shell','lining','padding','fob','comments'];
-      for (let r = 0; r < LABELS.length; r++) {
-        const isHeader = r % 2 === 0;
-        drawCell(ctx, ML, ry, colW0, ROW_H, '#aaa', isHeader ? '#e8edf5' : '#f5f5f5');
-        ctx.fillStyle = '#111'; ctx.font = 'bold 9px Arial'; ctx.textAlign = 'center';
-        ctx.fillText(LABELS[r], ML + colW0/2, ry + ROW_H/2 + 3);
-
-        cx = ML + colW0;
-        for (let p = 0; p < 5; p++) {
-          drawCell(ctx, cx, ry, dataColW, ROW_H, '#aaa', '#fff');
-          const card = group[p];
-          if (card) {
-            let val = '';
-            if (r===0) val = card.supplier||'';
-            else if (r===1) val = `${card.prefix||''}-${card.suffix||''}`;
-            else if (r===2) val = card.sample||'';
-            else if (r===3) val = card.shell||'';
-            else if (r===4) val = card.lining||'';
-            else if (r===5) val = card.padding||'';
-            else if (r===6) val = card.fob||'';
-            else if (r===7) val = card.comments||'';
-            ctx.fillStyle = '#222'; ctx.font = '9px Arial'; ctx.textAlign = 'center';
-            let txt = val;
-            while (txt.length > 0 && ctx.measureText(txt).width > dataColW - 8) txt = txt.slice(0,-1);
-            if (txt !== val) txt += '…';
-            ctx.fillText(txt, cx + dataColW/2, ry + ROW_H/2 + 3);
-          }
-          cx += dataColW;
+function buildPrintableHtml() {
+  var pages = [];
+  for (var i = 0; i < cards.length; i += 5) {
+    var group = cards.slice(i, i + 5);
+    var rows = '';
+    for (var p = 0; p < 5; p++) {
+      var card = group[p] || null;
+      rows += '<div class="col">';
+      rows += '<div class="photo">' + (card && card.image ? '<img src="' + escapeAttr(card.image) + '" alt="">' : '<div class="empty">No Photo</div>') + '</div>';
+      rows += '<table>';
+      for (var r = 0; r < FIELD_LABELS.length; r++) {
+        var value = '';
+        if (card) {
+          if (r === 0) value = card.supplier || '';
+          if (r === 1) value = (card.prefix || '') + '-' + (card.suffix || '');
+          if (r === 2) value = card.sample || '';
+          if (r === 3) value = card.shell || '';
+          if (r === 4) value = card.lining || '';
+          if (r === 5) value = card.padding || '';
+          if (r === 6) value = card.fob || '';
+          if (r === 7) value = card.comments || '';
         }
-        ry += ROW_H;
+        rows += '<tr><th>' + escapeHtml(FIELD_LABELS[r]) + '</th><td>' + escapeHtml(value) + '</td></tr>';
       }
-      y += groupH;
+      rows += '</table></div>';
     }
-
-    // 页码
-    ctx.fillStyle = '#999'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
-    ctx.fillText(`${pi+1} / ${pageGroups.length}`, PW/2, PH - 10);
-
-    pageImages.push(canvas.toDataURL('image/jpeg', 0.95));
+    pages.push(
+      '<section class="page">' +
+        '<div class="page-head">' +
+          '<div class="title">SAMPLES MINI SKETCH - MENS</div>' +
+          '<div class="sub">可编辑 PDF 打印版</div>' +
+        '</div>' +
+        '<div class="grid">' + rows + '</div>' +
+        '<div class="page-foot">Page ' + (Math.floor(i / 5) + 1) + ' / ' + Math.ceil(cards.length / 5) + '</div>' +
+      '</section>'
+    );
   }
-  return pageImages;
+
+  return (
+    '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+    '<style>' +
+      '@page{size:A3 landscape;margin:10mm}' +
+      'html,body{margin:0;padding:0;background:#fff;color:#111;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}' +
+      '.page{page-break-after:always;box-sizing:border-box;padding:0}' +
+      '.page-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6mm}' +
+      '.title{font-size:18pt;font-weight:700}' +
+      '.sub{font-size:9pt;color:#666}' +
+      '.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4mm}' +
+      '.col{border:1px solid #9a9a9a;min-height:0}' +
+      '.photo{height:46mm;border-bottom:1px solid #9a9a9a;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f4f4f4}' +
+      '.photo img{width:100%;height:100%;object-fit:cover;display:block}' +
+      '.photo .empty{font-size:11pt;color:#777}' +
+      'table{width:100%;border-collapse:collapse;table-layout:fixed}' +
+      'th,td{border-top:1px solid #9a9a9a;padding:2.2mm 2.4mm;font-size:8.5pt;vertical-align:top;word-break:break-word}' +
+      'th{width:27%;background:#f2f4f8;font-weight:700}' +
+      'td{width:73%}' +
+      '.page-foot{text-align:center;margin-top:5mm;font-size:8.5pt;color:#777}' +
+    '</style></head><body>' +
+    pages.join('') +
+    '</body></html>'
+  );
 }
 
-function drawCell(ctx,x,y,w,h,bc,fc){
-  ctx.fillStyle=fc; ctx.fillRect(x,y,w,h);
-  ctx.strokeStyle=bc; ctx.lineWidth=0.7;
-  ctx.strokeRect(x+0.4,y+0.4,w-0.8,h-0.8);
-}
-function drawImage(ctx,src,x,y,w,h){
-  return new Promise(res=>{
-    const img=new Image();
-    img.onload=()=>{
-      const scale=Math.min(w/img.width,h/img.height);
-      const dw=img.width*scale,dh=img.height*scale;
-      ctx.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
-      res();
-    };
-    img.onerror=res;
-    img.src=src;
-  });
-}
-
-function showPreview(pages) {
-  const scroll = document.getElementById('preview-scroll');
-  scroll.innerHTML = '';
-  pages.forEach((src, i) => {
-    const img = document.createElement('img');
-    img.src = src;
-    img.alt = `第${i+1}页`;
-    scroll.appendChild(img);
-  });
-  const pv = document.getElementById('preview');
-  pv.style.display = 'flex';
-  toast('长按图片 → 存储到照片');
+function exportPDF() {
+  if (!cards.length) {
+    toast('请先添加产品');
+    return;
+  }
+  showLoad('准备打印 PDF...');
+  try {
+    var frame = document.getElementById('printFrame');
+    var doc = frame.contentWindow.document;
+    doc.open();
+    doc.write(buildPrintableHtml());
+    doc.close();
+    setTimeout(function () {
+      hideLoad();
+      toast('请在打印面板里选择“存储为 PDF”');
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    }, 350);
+  } catch (err) {
+    hideLoad();
+    toast('生成失败: ' + (err && err.message ? err.message : err));
+    console.error(err);
+  }
 }
 
-function closePreview() {
-  document.getElementById('preview').style.display = 'none';
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function () {
+    t.style.opacity = '0';
+  }, 2500);
 }
 
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',3000);}
-function showLoad(txt){document.getElementById('loadTxt').textContent=txt||'处理中...';document.getElementById('loading').style.display='flex';}
-function hideLoad(){document.getElementById('loading').style.display='none';}
+function showLoad(text) {
+  document.getElementById('loadTxt').textContent = text || '处理中...';
+  document.getElementById('loading').style.display = 'flex';
+}
+
+function hideLoad() {
+  document.getElementById('loading').style.display = 'none';
+}
+
+// 初始状态
+if (!restoreState()) {
+  addCard({
+    supplier: '',
+    prefix: '',
+    suffix: suffixForIndex(0),
+    sample: SAMPLE_OPTIONS[0],
+    shell: '',
+    lining: '',
+    padding: '',
+    fob: '',
+    comments: ''
+  }, true);
+}
+renderCards();
 </script>
 </body>
 </html>
